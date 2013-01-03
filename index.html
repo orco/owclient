@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Asken5 OWFS</title>
+<!-- Bootstrap -->
+<link href="root/src/bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+</head>
+<body>
+  <div class="container">
+  <h1>Sensordata</h1>
+  <div class="progress">
+    <div id="progressbar" class="bar" style="width: 0%"></div>
+  </div>
+  <div id="sensordata">Loading data...</div>
+  <script src="http://code.jquery.com/jquery-latest.js"></script>
+  <script src="root/src/bootstrap/js/bootstrap.min.js"></script>
+  <script src="root/src/client/client.js"></script>
+  <script type="text/javascript">$("#progressbar").width('20%');</script>
+  <table cellpadding="0" cellspacing="0" border="0" class="table table-hover table-striped table-bordered" id="sensortable">
+    <thead>
+      <tr>
+	<th>ID</th>
+	<th>Type</th>
+	<th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+  <button type="button" id="refresh" class="btn btn-primary" data-loading-text="Loading...">Refresh</button>
+  </div>
+  <script type="text/javascript">
+    var url = 'http://192.168.0.97:443';
+    $("#refresh").click(function() {
+	$("#progressbar").width('40%');
+	updateSensorData(url, "#progressbar");
+    });
+    $("#progressbar").width('40%');
+    $(document).ready(function() {
+	updateSensorData(url, "#progressbar");
+    });
+  </script>
+</body>
+</html>
