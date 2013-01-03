@@ -8,7 +8,7 @@
 </head>
 <body>
   <div class="container">
-  <h1>Sensordata</h1>
+    <h1>Sensordata</h1>
   <div class="progress">
     <div id="progressbar" class="bar" style="width: 0%"></div>
   </div>
@@ -31,9 +31,9 @@
   <button type="button" id="refresh" class="btn btn-primary" data-loading-text="Loading...">Refresh</button>
   </div>
   <script type="text/javascript">
-    var url = 'http://192.168.0.97:443';
+    var url = 'http://' + $(location).attr('host');
     $("#refresh").click(function() {
-	$("#progressbar").width('40%');
+	$("#progressbar").width('0%');
 	updateSensorData(url, "#progressbar");
     });
     $("#progressbar").width('40%');

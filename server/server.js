@@ -8,8 +8,9 @@ function start() {
     function onRequest(request, response) {
 	var u = url.parse(request.url, true);
 	var headers = request.headers['x-requested-with'];
+        var host    = request.headers['host'];
 	var reqtype = headers == 'XMLHttpRequest' ? "async" : "sync";
-//	console.log("Headers: " + util.inspect(request.headers));
+//	console.log("Headers: " + util.inspect(request));
 	console.log(reqtype + " request for " + request.url + " received.");
 	if (reqtype == "async") {
             // handle async request
@@ -19,8 +20,11 @@ function start() {
             // handle sync request (by server index.html)
             if (request.url == '/') {
 		response.writeHead(200, {'content-type': 'text/html'})
+//		var str = fs.readFileSync('index.html');
+//		str.replace("XXX", host);
+//		fs.writeFileSync('index.html', str);
 		fs.createReadStream('index.html').pipe(response);
-            } 
+            }
             else {
 		console.log("Looking for existence of " + request.url);
 		fs.lstat(request.url, function (err, stats) {
