@@ -1,9 +1,10 @@
-//var host     = "192.168.0.86";
-var host     = "localhost";
-var port     = 4304;
-var Client   = require("owfs").Client;
-var owserver = new Client(host, port);
-var ui       = require("./ui");
+var host       = "localhost";
+var port       = 4304;
+var Client     = require("owfs").Client;
+var owserver   = new Client(host, port);
+var ui         = require("./ui");
+var lastupdate = new Date();
+var lastresult = null;
 
 function sensorType(id, callback) {
     var path = id + "/type";
@@ -58,6 +59,15 @@ function findIndex(id, sensors) {
 }
 
 function handleDirs(dirs, callback) {
+    // If less than 100 seconds since last refresh
+    // just return the old values
+    var now   = new Date();
+    var since = (now - lastupdate) / 1000;
+    if(lastresult && (since < 100)) {
+	console.log("Only " + since + " seconds since last update");
+	callback(lastresult);
+	return;
+    }
     var result = {realSensors : 0, virtualSensors : 0, sensors: []};
     //console.log("Found " + dirs.length + " sensors");
     for(var d in dirs) {
@@ -79,6 +89,8 @@ function handleDirs(dirs, callback) {
 		    result.realSensors += 1;
 		}
 		if(result.realSensors + result.virtualSensors === dirs.length) {
+		    lastresult = result;
+		    lastupdate = now;
 		    callback(result);
 		    //console.log(result);
 		}
