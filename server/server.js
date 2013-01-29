@@ -12,21 +12,43 @@ function start() {
 	var reqtype = headers == 'XMLHttpRequest' ? "async" : "sync";
 	console.log(reqtype + " request for " + request.url + " received.");
 	if (reqtype == "async") {
-            // handle async request
-	    owfs.allSensorsWithResponse(response);
+            // handle async requests
+	    if(request.url.indexOf("/history") == 0) {
+		owfs.getTempHistory(request.url.
+				    slice(request.url.lastIndexOf('/history/'+1)),
+				    response);
+	    }
+	    else {
+		owfs.allSensorsWithResponse(response);
+	    }
 	}
 	else {
             // handle sync request (by server index.html)
             if (request.url == '/') {
-		response.writeHead(200, {'content-type': 'text/html'})
+		var mimeType = 'text/html';
+		response.writeHead(200, {'content-type': mimeType})
 		fs.createReadStream('index.html').pipe(response);
             }
+	    else if(request.url.indexOf("/history") == 0) {
+		var sensorName = request.url.slice(9);
+		console.log("Requesting data for " + sensorName);
+		owfs.getTempHistoryWithResponse(sensorName, response);
+	    }
             else {
 		console.log("Looking for existence of " + request.url);
 		fs.lstat(request.url, function (err, stats) {
 		    if(!err && stats.isFile()) {
-			response.writeHead(200)
-//			response.writeHead(200, {'content-type': 'text/html'})
+			var suffix = request.url.split(".").pop();
+			var mimeType = 'text/html';
+			if(! suffix)
+			    suffix = "";
+			if(suffix == "css") {
+			    mimeType = "text/css";
+			}
+			if(suffix == "js") {
+			    mimeType = "application/javascript";
+			}
+			response.writeHead(200, {'content-type': mimeType})
 			fs.createReadStream(request.url).pipe(response);
 		    }
 		    else {

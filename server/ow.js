@@ -2,7 +2,7 @@ var host       = "localhost";
 var port       = 4304;
 var Client     = require("owfs").Client;
 var owserver   = new Client(host, port);
-var ui         = require("./ui");
+//var ui         = require("./ui");
 var lastupdate = new Date();
 var lastresult = null;
 
@@ -108,9 +108,6 @@ function allSensors(callback) {
 function allSensorsWithResponse(response) {
     allSensors(function (result) {
 	response.writeHead(200, {"Content-Type": "application/json"});
-	//response.writeHead(200, {"Content-Type": "text/html"});
-//	console.log(result);
-//	response.write(ui.generatePage(JSON.stringify(result)));
 	response.write(JSON.stringify(result));
 	response.end();
     });
@@ -120,5 +117,45 @@ function allSensorsWithConsole() {
     allSensors(console.log);
 }
 
-exports.allSensorsWithResponse = allSensorsWithResponse;
-exports.allSensorsWithConsole  = allSensorsWithConsole;
+function getTempHistory(name, callback) {
+    var spawn   = require('child_process').spawn;
+    var rrdTool = spawn('rrdtool', ['fetch', 
+				    '/pub/rrd/' + name + '.rrd', 
+				    'AVERAGE', 
+				    '-r', 
+				    '900', 
+				    '-s', 
+				    '-24h']);
+    rrdTool.stdout.on('data', function (data) {
+//	response.write('' + data.toString().
+	var payload = data.toString().
+	    replace(/,/g, '.').
+	    replace(/: /g, '\t').
+	    replace(/\n.*\tnan/g, '').
+	    replace(/\n\n/g, '\n').
+	    split('\n').
+	    slice(1).toString().
+	    replace(/,/g, '\n');
+	payload = 'date\tclose\n' + payload;
+	console.log(payload);
+	callback(payload);
+//	response.end();
+    });
+}
+
+function getTempHistoryWithConsole(name, response) {
+    getTempHistory(name, console.log);
+}
+
+function getTempHistoryWithResponse(name, response) {
+    getTempHistory(name, function (result) {
+	response.writeHead(200, {"Content-Type": "application/tsv"});
+	response.write(result);
+	response.end();	
+    });
+}
+
+exports.allSensorsWithResponse	   = allSensorsWithResponse;
+exports.allSensorsWithConsole	   = allSensorsWithConsole;
+exports.getTempHistory		   = getTempHistory;
+exports.getTempHistoryWithResponse = getTempHistoryWithResponse;
