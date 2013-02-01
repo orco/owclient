@@ -31,7 +31,7 @@
       }
     </style>
   </head>
-  <body onresize="resizeCanvas('myCanvas')">
+  <body>
     <div class="navbar navbar-inverse navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container-fluid">
@@ -61,7 +61,6 @@
 	  <ul class="nav nav-list bs-docs-sidenav">
             <li class="nav-header">Views</li>
 	    <li class="active"><a href="#sensors">Sensors</a></li>
-	    <li><a href="#graphs">Graphs</a></li>
 	    <li><a href="#lastUpdate">Last Update</a></li>
             <li class="nav-header">Actions</li>
 	    <li><a href="#settings">Settings</a></li>
@@ -90,12 +89,30 @@
           <section id="lastUpdate">
 	    <div id="sensordata">Loading data...</div>
           </section>
-          <section id="graphs">
-	    <canvas id="myCanvas" width="400" height="400">[No canvas support]</canvas>
-	  </section>
           <section id="settings">
 	    Settings
 	  </section>
+
+	  <!-- Modal -->
+	  <div id="myModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+	    <div class="modal-header">
+	      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+	      <h3 id="myModalLabel">History</h3>
+	    </div>
+	    <div class="modal-body">
+	      <section id="history">
+	      </section>
+	    </div>
+	    <div class="modal-footer">
+	      <div class="btn-group" data-toggle="buttons-radio">
+		<button class="btn btn-primary" id="week">Week</button>
+		<button class="btn btn-primary" id="day">Day</button>
+		<button class="btn btn-primary" id="hour">Hour</button>
+	      </div>
+	      <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+	    </div>
+	  </div>
+
 	</div>
       </div>
     </div>
@@ -103,25 +120,23 @@
     <script src="root/src/bootstrap/js/bootstrap.min.js"></script>
     <script src="root/src/client/client.js"></script>
     <script src="http://d3js.org/d3.v3.js"></script>
-    <script src="root/RGraph/libraries/RGraph.common.core.js"></script>
-    <script src="root/RGraph/libraries/RGraph.line.js"></script>
-    <script src="root/RGraph/libraries/RGraph.thermometer.js"></script>
     <script type="text/javascript">$("#progressbar").width('20%');</script>
     <script type="text/javascript">
       var url = 'http://' + $(location).attr('host');
       $("#refresh").click(function() {
         $("#progressbar").width('0%');
-        updateSensorData("myCanvas", url, "#progressbar");
+        updateSensorData(url, "#progressbar");
       });
       $("#progressbar").width('40%');
       $(document).ready(function() {
-        updateSensorData("myCanvas", url, "#progressbar");
+        updateSensorData(url, "#progressbar");
       });
       $("#settings").click(function (e) {
         alert("hej");
       })
-      <!-- d3Graph(url); -->
-      d3Graph(url + "/history/ute");
+      $('#myModal').on('hidden', function () {
+        d3.select('#history').select('svg').remove();
+      })
     </script>
   </body>
 </html>

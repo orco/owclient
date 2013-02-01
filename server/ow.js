@@ -2,9 +2,16 @@ var host       = "localhost";
 var port       = 4304;
 var Client     = require("owfs").Client;
 var owserver   = new Client(host, port);
-//var ui         = require("./ui");
 var lastupdate = new Date();
 var lastresult = null;
+var sensorMap  = new Array();
+
+sensorMap["1D.B3B00D000000"] = "energi.rrd";
+sensorMap["28.0C284B030000"] = "kallare.rrd";
+sensorMap["30.FFDF61120000"] = "rokgas.rrd";
+sensorMap["10.057C7C010800"] = "inne.rrd";
+sensorMap["10.29877C010800"] = "ute.rrd";
+sensorMap["10.627F7C010800"] = "stigare.rrd";
 
 function sensorType(id, callback) {
     var path = id + "/type";
@@ -117,29 +124,36 @@ function allSensorsWithConsole() {
     allSensors(console.log);
 }
 
-function getTempHistory(name, callback) {
+function getTempHistory(nameAndTime, callback) {
+    var parts   = nameAndTime.split('/');
+    var name    = parts[0];
+    var time    = '-' + parts[1];
     var spawn   = require('child_process').spawn;
+    var rrdFile = '/pub/rrd/' + sensorMap[name];
     var rrdTool = spawn('rrdtool', ['fetch', 
-				    '/pub/rrd/' + name + '.rrd', 
+				    rrdFile, 
 				    'AVERAGE', 
 				    '-r', 
 				    '900', 
 				    '-s', 
-				    '-24h']);
+				    time]);
     rrdTool.stdout.on('data', function (data) {
-//	response.write('' + data.toString().
 	var payload = data.toString().
+	    replace(/^[^:]*\n$/g, '').
+	    replace(/\d+: nan/g, '').
 	    replace(/,/g, '.').
 	    replace(/: /g, '\t').
-	    replace(/\n.*\tnan/g, '').
 	    replace(/\n\n/g, '\n').
 	    split('\n').
 	    slice(1).toString().
 	    replace(/,/g, '\n');
-	payload = 'date\tclose\n' + payload;
 	console.log(payload);
+	console.log('sending payload of ' + payload.length + 'bytes');
 	callback(payload);
-//	response.end();
+    });
+    rrdTool.on('exit', function (data) {
+	console.log('rrdTool exit');
+	callback('end');
     });
 }
 
@@ -148,10 +162,16 @@ function getTempHistoryWithConsole(name, response) {
 }
 
 function getTempHistoryWithResponse(name, response) {
+    response.writeHead(200, {"Content-Type": "application/tsv"});
+    response.write('date\tclose\n');
     getTempHistory(name, function (result) {
-	response.writeHead(200, {"Content-Type": "application/tsv"});
-	response.write(result);
-	response.end();	
+	if(result == 'end') {
+	    console.log('end');
+	    response.end();
+	}
+	else {
+	    response.write(result);
+	}
     });
 }
 
